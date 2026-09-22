@@ -1,41 +1,33 @@
 @php
-    $estados = ['En progreso', 'Completado', 'Pausado', 'Planeado'];
+    $estados = \App\Http\Requests\StoreProyectoRequest::estadosPermitidos();
 @endphp
 
 <div class="space-y-6">
     {{-- Título --}}
     <div>
-        <label for="titulo" class="block text-sm font-medium text-slate-700 mb-1">Título del proyecto</label>
-        <input type="text" name="titulo" id="titulo"
-               value="{{ old('titulo', $proyecto->titulo ?? '') }}"
-               placeholder="Ej: API de gestión de tareas"
-               class="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-colors
-                      @error('titulo') border-red-400 @enderror">
-        @error('titulo')
-            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-        @enderror
+        <x-input-label for="titulo" value="Título del proyecto" />
+        <x-text-input id="titulo" name="titulo" type="text" class="mt-1 block w-full"
+                      :value="old('titulo', $proyecto->titulo ?? '')"
+                      placeholder="Ej: API de gestión de tareas" required />
+        <x-input-error :messages="$errors->get('titulo')" class="mt-2" />
     </div>
 
     {{-- Stack --}}
     <div>
-        <label for="stack" class="block text-sm font-medium text-slate-700 mb-1">Stack / Tecnologías</label>
-        <input type="text" name="stack" id="stack"
-               value="{{ old('stack', $proyecto->stack ?? '') }}"
-               placeholder="Ej: Laravel, Vue.js, MySQL"
-               class="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-colors
-                      @error('stack') border-red-400 @enderror">
-        <p class="mt-1 text-xs text-slate-500">Separa las tecnologías con comas.</p>
-        @error('stack')
-            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-        @enderror
+        <x-input-label for="stack" value="Stack / Tecnologías" />
+        <x-text-input id="stack" name="stack" type="text" class="mt-1 block w-full"
+                      :value="old('stack', $proyecto->stack ?? '')"
+                      placeholder="Ej: Laravel, Vue.js, MySQL" required />
+        <p class="mt-1 text-xs text-gray-500">Separa las tecnologías con comas.</p>
+        <x-input-error :messages="$errors->get('stack')" class="mt-2" />
     </div>
 
     {{-- Estado --}}
     <div>
-        <label for="estado" class="block text-sm font-medium text-slate-700 mb-1">Estado</label>
+        <x-input-label for="estado" value="Estado" />
         <select name="estado" id="estado"
-                class="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-colors
-                       @error('estado') border-red-400 @enderror">
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
+                required>
             <option value="">Selecciona un estado</option>
             @foreach ($estados as $estado)
                 <option value="{{ $estado }}"
@@ -44,31 +36,36 @@
                 </option>
             @endforeach
         </select>
-        @error('estado')
-            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-        @enderror
+        <x-input-error :messages="$errors->get('estado')" class="mt-2" />
+    </div>
+
+    {{-- Etiquetas --}}
+    <div>
+        <x-input-label for="etiquetas" value="Etiquetas" />
+        <x-text-input id="etiquetas" name="etiquetas" type="text" class="mt-1 block w-full"
+                      :value="old('etiquetas', isset($proyecto) && $proyecto->exists ? $proyecto->etiquetas->pluck('nombre')->implode(', ') : '')"
+                      placeholder="Ej: Backend, API, Testing" />
+        <p class="mt-1 text-xs text-gray-500">Separa las etiquetas con comas. Se crearán automáticamente si no existen.</p>
+        <x-input-error :messages="$errors->get('etiquetas')" class="mt-2" />
     </div>
 
     {{-- Resumen --}}
     <div>
-        <label for="resumen" class="block text-sm font-medium text-slate-700 mb-1">Resumen</label>
+        <x-input-label for="resumen" value="Resumen" />
         <textarea name="resumen" id="resumen" rows="5"
                   placeholder="Describe de qué trata el proyecto, qué aprendiste, qué problemas resolviste..."
-                  class="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-colors resize-y
-                         @error('resumen') border-red-400 @enderror">{{ old('resumen', $proyecto->resumen ?? '') }}</textarea>
-        @error('resumen')
-            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-        @enderror
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm resize-y"
+                  required>{{ old('resumen', $proyecto->resumen ?? '') }}</textarea>
+        <x-input-error :messages="$errors->get('resumen')" class="mt-2" />
     </div>
 
     {{-- Botones --}}
     <div class="flex items-center gap-3 pt-2">
-        <button type="submit"
-                class="inline-flex items-center rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 transition-colors">
+        <x-primary-button>
             {{ isset($proyecto) && $proyecto->exists ? 'Guardar cambios' : 'Crear proyecto' }}
-        </button>
+        </x-primary-button>
         <a href="{{ isset($proyecto) && $proyecto->exists ? route('proyectos.show', $proyecto) : route('proyectos.index') }}"
-           class="text-sm text-slate-500 hover:text-slate-700 transition-colors">
+           class="text-sm text-gray-500 hover:text-gray-700 transition-colors">
             Cancelar
         </a>
     </div>
